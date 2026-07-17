@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1">
+<title>Self-Intro Passport — 英作文暗記トレーナー</title>
+<meta name="description" content="自己紹介の英作文を暗記するためのフラッシュカード＆読み上げトレーナー（PWA版）。">
+
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#182642">
+
+<!-- iOS home-screen support -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Self-Intro">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" href="icons/icon-192.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;0,600;0,700;1,500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#182642;
+    --navy-2:#22335a;
+    --cream:#F2ECD6;
+    --ivory:#FBF8EF;
+    --gold:#B98B3E;
+    --gold-2:#8f6a2b;
+    --stamp:#9C3B3B;
+    --ink:#1B2A4A;
+    --muted:#8A8368;
+    --line:#d9d0ad;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--cream);
+    color:var(--ink);
+    font-family:'IBM Plex Sans', sans-serif;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  .jp{ font-family:'Noto Sans JP','Hiragino Sans','Yu Gothic',sans-serif; }
+  .mono{ font-family:'IBM Plex Mono', monospace; }
+  .display{ font-family:'Fraunces', serif; }
+
+  /* ---- top bar ---- */
+  #topbar{
+    background:var(--navy);
+    color:var(--ivory);
+    padding:16px 20px 14px;
+    position:sticky; top:0; z-index:20;
+  }
+  #topbar .row{
+    display:flex; align-items:baseline; justify-content:space-between; gap:12px;
+  }
+  #topbar h1{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:1.15rem;
+    margin:0;
+    letter-spacing:0.01em;
+  }
+  #topbar h1 .sub{
+    display:block;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.62rem;
+    color:#c9d0e0;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    margin-bottom:2px;
+  }
+  #overall-frac{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.78rem;
+    color:var(--gold);
+    white-space:nowrap;
+  }
+  #overall-bar-track{
+    margin-top:10px;
+    height:5px;
+    background:rgba(255,255,255,0.14);
+    border-radius:3px;
+    overflow:hidden;
+  }
+  #overall-bar-fill{
+    height:100%;
+    background:linear-gradient(90deg,var(--gold),#e0b563);
+    width:0%;
+    transition:width .4s ease;
+  }
+
+  /* ---- layout ---- */
+  #layout{
+    display:flex;
+    max-width:1100px;
+    margin:0 auto;
+    min-height:calc(100vh - 92px);
+  }
+  #sidebar{
+    width:270px;
+    flex-shrink:0;
+    background:var(--navy-2);
+    color:var(--ivory);
+    padding:14px 10px 30px;
+    overflow-y:auto;
+  }
+  .group-label{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.62rem;
+    letter-spacing:0.16em;
+    text-transform:uppercase;
+    color:#9aa6c4;
+    margin:16px 10px 6px;
+  }
+  .cat-btn{
+    display:block;
+    width:100%;
+    text-align:left;
+    background:transparent;
+    border:1px dashed rgba(255,255,255,0.18);
+    color:var(--ivory);
+    border-radius:8px;
+    padding:9px 10px;
+    margin:5px 0;
+    cursor:pointer;
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:0.86rem;
+    position:relative;
+    transition:background .15s ease, border-color .15s ease;
+  }
+  .cat-btn:hover{ background:rgba(255,255,255,0.06); }
+  .cat-btn.active{
+    background:var(--gold);
+    border-color:var(--gold);
+    color:#241a08;
+    font-weight:600;
+  }
+  .cat-btn .frac{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.7rem;
+    opacity:0.75;
+    float:right;
+  }
+  .cat-btn.active .frac{ opacity:0.85; }
+  .cat-btn.done::after{
+    content:'✓';
+    position:absolute;
+    left:-2px; top:-6px;
+    font-size:0.6rem;
+    color:var(--gold);
+  }
+
+  /* ---- main ---- */
+  #main{
+    flex:1;
+    padding:26px 24px 60px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+  }
+  #cat-header{
+    width:100%;
+    max-width:560px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:14px;
+  }
+  #cat-title{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:1.35rem;
+    color:var(--ink);
+  }
+  #cat-title .n{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.78rem;
+    color:var(--muted);
+    display:block;
+    margin-bottom:2px;
+  }
+  #practice-toggle{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.72rem;
+    color:var(--gold-2);
+    background:none;
+    border:1px solid var(--gold);
+    border-radius:20px;
+    padding:6px 12px;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  #practice-toggle.active{
+    background:var(--gold);
+    color:#241a08;
+  }
+
+  /* ---- card ---- */
+  #card-wrap{
+    width:100%;
+    max-width:560px;
+    position:relative;
+  }
+  #card{
+    background:var(--ivory);
+    border:1.5px solid var(--line);
+    border-radius:4px 4px 16px 16px;
+    padding:34px 28px 26px;
+    min-height:260px;
+    position:relative;
+    box-shadow:0 2px 0 var(--line), 0 14px 30px -18px rgba(27,42,74,0.35);
+  }
+  #card::before{
+    content:'';
+    position:absolute;
+    top:0; left:24px; right:24px;
+    height:0;
+    border-top:1px dashed var(--line);
+  }
+  #card-counter{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.7rem;
+    color:var(--muted);
+    letter-spacing:0.06em;
+    margin-bottom:16px;
+  }
+  #jp-text{
+    font-size:1.28rem;
+    line-height:1.75;
+    color:var(--ink);
+    margin-bottom:18px;
+  }
+  #en-wrap{
+    border-top:1px dashed var(--line);
+    padding-top:16px;
+    min-height:70px;
+  }
+  #en-text{
+    font-size:1.08rem;
+    line-height:1.6;
+    color:var(--gold-2);
+    opacity:0;
+    transform:translateY(4px);
+    transition:opacity .25s ease, transform .25s ease;
+  }
+  #en-text.show{ opacity:1; transform:translateY(0); }
+  #en-placeholder{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.78rem;
+    color:var(--muted);
+  }
+  #note-wrap{
+    margin-top:14px;
+    padding-top:12px;
+    border-top:1px dashed var(--line);
+    opacity:0;
+    max-height:0;
+    overflow:hidden;
+    transition:opacity .25s ease;
+  }
+  #note-wrap.show{
+    opacity:1;
+    max-height:400px;
+  }
+  #note-label{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.65rem;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--gold-2);
+    margin-bottom:6px;
+  }
+  #note-text{
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:0.86rem;
+    line-height:1.6;
+    color:var(--ink);
+    background:#F7F2E0;
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:10px 12px;
+  }
+
+  .stamp{
+    position:absolute;
+    top:14px; right:18px;
+    border:2.5px solid var(--stamp);
+    color:var(--stamp);
+    border-radius:50%;
+    width:74px; height:74px;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.6rem;
+    font-weight:700;
+    letter-spacing:0.05em;
+    text-align:center;
+    transform:rotate(-14deg) scale(0);
+    opacity:0;
+    pointer-events:none;
+    transition:transform .35s cubic-bezier(.34,1.56,.64,1), opacity .2s ease;
+  }
+  .stamp.visible{
+    transform:rotate(-14deg) scale(1);
+    opacity:0.9;
+  }
+
+  /* ---- controls ---- */
+  #controls{
+    width:100%;
+    max-width:560px;
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-top:16px;
+  }
+  button.ctl{
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:0.85rem;
+    border:1px solid var(--line);
+    background:var(--ivory);
+    color:var(--ink);
+    border-radius:8px;
+    padding:9px 14px;
+    cursor:pointer;
+    transition:background .15s ease, border-color .15s ease;
+  }
+  button.ctl:hover{ border-color:var(--gold); }
+  button.ctl.primary{
+    background:var(--navy);
+    color:var(--ivory);
+    border-color:var(--navy);
+  }
+  button.ctl.primary:hover{ background:var(--navy-2); }
+  button.ctl.gold{
+    background:var(--gold);
+    color:#241a08;
+    border-color:var(--gold);
+    font-weight:600;
+  }
+  button.ctl.gold.off{
+    background:transparent;
+    color:var(--gold-2);
+  }
+  button.ctl.playing{
+    background:var(--stamp);
+    border-color:var(--stamp);
+    color:#fff;
+  }
+  button.ctl:disabled{ opacity:0.35; cursor:default; }
+  #loop-hint{
+    width:100%;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.68rem;
+    color:var(--muted);
+    margin:2px 0 0;
+  }
+  #rate-group{ display:flex; gap:4px; }
+  #rate-group button.rate{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.72rem;
+    padding:8px 10px;
+  }
+  #rate-group button.rate.selected{
+    background:var(--navy);
+    color:var(--ivory);
+    border-color:var(--navy);
+  }
+  #nav-row{
+    display:flex;
+    justify-content:space-between;
+    width:100%;
+    max-width:560px;
+    margin-top:10px;
+  }
+
+  #empty-state{
+    width:100%; max-width:560px;
+    text-align:center;
+    padding:60px 20px;
+    color:var(--muted);
+  }
+  #empty-state .big{
+    font-family:'Fraunces', serif;
+    font-size:1.3rem;
+    color:var(--ink);
+    display:block;
+    margin-bottom:8px;
+  }
+
+  @media (max-width:760px){
+    #layout{ flex-direction:column; }
+    #sidebar{
+      width:100%;
+      display:flex;
+      flex-wrap:nowrap;
+      overflow-x:auto;
+      padding:10px 10px;
+      gap:6px;
+    }
+    .group-label{ display:none; }
+    .cat-btn{
+      width:auto;
+      white-space:nowrap;
+      margin:0;
+    }
+    #main{ padding:20px 16px 50px; }
+  }
+
+  button:focus-visible, .cat-btn:focus-visible{
+    outline:2px solid var(--gold);
+    outline-offset:2px;
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{ transition:none !important; animation:none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <div class="row">
+    <h1><span class="sub">Study Passport · 英作文暗記トレーナー</span>Self-Introduction, 20 Chapters</h1>
+    <div id="overall-frac">0 / 0</div>
+  </div>
+  <div id="overall-bar-track"><div id="overall-bar-fill"></div></div>
+</div>
+
+<div id="layout">
+  <nav id="sidebar"></nav>
+  <main id="main">
+    <div id="cat-header">
+      <div id="cat-title"></div>
+      <button id="practice-toggle" class="mono">苦手のみ練習</button>
+    </div>
+    <div id="card-wrap">
+      <div id="card">
+        <div class="stamp" id="stamp">MASTERED<br>習得済</div>
+        <div id="card-counter"></div>
+        <div id="jp-text" class="jp"></div>
+        <div id="en-wrap">
+          <div id="en-placeholder" class="mono">「英語を見る」を押すと表示されます</div>
+          <div id="en-text"></div>
+          <div id="note-wrap">
+            <div id="note-label">💡 解説</div>
+            <div id="note-text"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="controls">
+      <button class="ctl primary" id="btn-continuous">▶ 連続再生</button>
+      <button class="ctl gold off" id="btn-bilingual">日本語も読む: OFF</button>
+      <div id="loop-hint">現在のリストを最初から最後までループ再生します</div>
+      <button class="ctl" id="btn-show">英語を見る</button>
+      <div id="rate-group">
+        <button class="ctl rate selected" data-rate="0.8">🔊 ゆっくり</button>
+        <button class="ctl rate" data-rate="1.0">🔊 標準</button>
+      </div>
+      <button class="ctl gold off" id="btn-master">習得済みにする ✓</button>
+    </div>
+    <div id="nav-row">
+      <button class="ctl" id="btn-prev">◀ 前へ</button>
+      <button class="ctl" id="btn-next">次へ ▶</button>
+    </div>
+  </main>
+</div>
+
+<script>
+/* =================== DATA =================== */
+const CATEGORIES = {
+ 1:{title:"自己紹介", group:"自分について", sentences:[
+  ["私はYamaguchi NOBUTAKAです。","My name is Yamaguchi Nobutaka.","自己紹介の基本パターン。\"My name is ~\" は \"I'm ~\" より少しフォーマルな響き。"],
+  ["ニックネームはNOBUです。","My nickname is Nobu.","nickname(愛称)。\"Call me Nobu\"(Nobuと呼んでください)と言い換えても自然。"],
+  ["29歳で、社会人7年目になります。","I'm 29 years old, and this is my 7th year working.","\"this is my Xth year -ing\" で「〜して何年目」。序数(7th)の使い方に注意。"],
+  ["私は中学受験をして立命館中学校に入りました。","I took an entrance exam to get into Ritsumeikan Junior High School.","\"take an exam\"(試験を受ける)。\"to get into ~\" は目的を表す不定詞。"],
+  ["そこから大学までエスカレーター式で進学しました。","From there, I moved up to university on the same escalator system.","\"escalator system\" は日本の内部進学制度を説明する言い方。\"move up to ~\"(〜に進級する)。"],
+  ["大学は立命館大学の法学部法学科でした。","I studied at the Faculty of Law, Department of Law, at Ritsumeikan University.","学部・学科は \"Faculty of X, Department of Y\" の順。"],
+  ["大学のゼミで保険法を学びました。","In my seminar, I studied insurance law.","\"seminar\" はゼミの意味でそのまま使える。"],
+  ["それがきっかけで保険業界に興味を持ちました。","That's what got me interested in the insurance industry.","\"That's what got me interested in ~\" は「それがきっかけで〜に興味を持った」の頻出パターン。"],
+  ["FWD生命保険を選んだ理由は2つあります。","I had two reasons for choosing FWD Life Insurance.","\"reason for -ing\" の形。理由を列挙する時の導入文。"],
+  ["1つは、FWDグループになってから初めての新卒採用だったことです。","One reason was that it was the first time the company hired new graduates after becoming part of the FWD Group.","\"the first time (that) 主語+動詞\" で「〜するのは初めてだった」。"],
+  ["もう1つは、会社の規模がそこまで大きくなかったことです。","The other reason was that the company wasn't too large.","\"One reason...The other reason...\" は理由を2つ並べる定番パターン。"],
+  ["私は新卒でFWD生命保険に入社しました。","I joined FWD Life Insurance right after graduating from university.","\"right after -ing\" で「〜した直後に」。"],
+  ["今もこの会社で働いています。","I still work at this company today.","\"still\"(今もなお)は継続を表す副詞で動詞の前に置く。"],
+  ["現在は経営企画・事業開発の仕事をしています。","Right now, I work in corporate planning and business development.","\"work in ~\" で職種・分野を表す。"],
+  ["住まいは東京都日野市です。","I live in Hino City, Tokyo.","地名は「市区町村, 都道府県」の順(日本語と逆)。"],
+  ["日野駅から電車で通勤しています。","I commute by train from Hino Station.","\"commute by train\"(電車で通勤する)。\"commute from A to B\" のように出発点も言える。"]
+ ]},
+ 2:{title:"仕事の1日の流れ", group:"自分について", sentences:[
+  ["私は毎朝6時半から7時の間に起きます。","I wake up every morning between 6:30 and 7:00.","\"between A and B\" で時間の範囲を表す。"],
+  ["起きたら、ハンドドリップでコーヒーを淹れて飲みます。","When I wake up, I make coffee using a hand drip method.","\"using ~\" は「〜を使って」を表す分詞構文。"],
+  ["これが私の日課です。","This is part of my daily routine.","\"daily routine\"(日課)は頻出表現。"],
+  ["仕事は7時半頃に始まります。","My workday usually starts around 7:30.","\"workday\"(勤務日)。\"around\" はおおよその時刻。"],
+  ["リモートワークの日は、そのまま家で仕事をします。","On remote work days, I keep working from home.","\"keep -ing\" で「〜し続ける」。"],
+  ["オフィスに午前から行く日もあります。","On some days, I go to the office in the morning.","\"on some days\"(日によっては)。"],
+  ["その日は7時50分頃に家を出ます。","On those days, I leave home around 7:50.","\"those days\" は直前の文で述べた特定の日を指す。"],
+  ["日野駅から中央線に乗ります。","I take the Chuo Line from Hino Station.","路線名は \"the + 路線名 + Line\"。"],
+  ["会社は神田駅の近くにあります。","My office is near Kanda Station.","\"near ~\"(〜の近くに)。"],
+  ["9時に会社に着きます。","I arrive at the office at 9:00.","\"arrive at + 場所\"(到着する)。"],
+  ["中央線はよく遅れます。","The Chuo Line is often delayed.","受け身 \"be delayed\"(遅延する)。"],
+  ["午前中は家で働き、午後からオフィスに行く日もあります。","On some days, I work from home in the morning and go to the office in the afternoon.","前半と後半が対になる構造(in the morning / in the afternoon)。"],
+  ["その日は12時に家を出て、13時に会社に着きます。","On those days, I leave home at noon and arrive at the office at 1:00 p.m.","\"at noon\"(正午に)。"],
+  ["仕事を始める前に、前日のタスクメモを確認します。","Before I start work, I check my task notes from the previous day.","\"the previous day\"(前日)。"],
+  ["そして、その日のタスクメモを作ります。","Then I make a new task list for that day.","\"for that day\"(その日のための)。"],
+  ["それから、タスクに沿って仕事を進めます。","After that, I work through my tasks one by one.","\"work through ~\"(順番に取り組む)、\"one by one\"(1つずつ)。"],
+  ["お昼休みの過ごし方は日によって違います。","How I spend my lunch break depends on the day.","\"depend on ~\"(〜次第)。\"How I spend ~\" は間接疑問文が主語になった形。"],
+  ["家にいる日は、昼寝をすることが多いです。","On days when I'm at home, I often take a nap.","\"days when ~\" は関係副詞。\"take a nap\"(昼寝する)。"],
+  ["オフィスにいる日は、スマホを見て過ごします。","On days when I'm in the office, I spend the time on my phone.","\"spend time on ~\"(〜に時間を使う)。"],
+  ["仕事が終わる時間は18時から20時の間で、日によって変わります。","My workday usually ends between 6:00 and 8:00 p.m., depending on the day.","\"depending on ~\"(〜次第で)は分詞構文的表現。"],
+  ["仕事が終わったら、家に帰って晩ご飯を作ります。","After work, I go home and cook dinner.","\"after work\"(仕事の後)。"]
+ ]},
+ 3:{title:"出身地・地元", group:"自分について", sentences:[
+  ["私の出身は京都です。","I'm originally from Kyoto.","\"originally from ~\"(出身は〜)。"],
+  ["生まれ育ったのは太秦というエリアです。","I grew up in an area called Uzumasa.","\"an area called ~\"(〜と呼ばれるエリア)は過去分詞の後置修飾。"],
+  ["大学も立命館大学だったので、京都でずっと過ごしていました。","I also went to university in Kyoto, at Ritsumeikan University, so I spent my whole life there.","\"so\"(だから)の因果関係。\"my whole life\"(人生のほとんど)。"],
+  ["京都は観光地のイメージが強いです。","Kyoto is known mainly as a tourist destination.","\"be known as ~\"(〜として知られている)。"],
+  ["しかし、京都は実はラーメンが美味しい街でもあります。","But Kyoto actually has great ramen, too.","\"actually\"(実は)は意外性を表す副詞。"],
+  ["太秦の近くには広隆寺や嵐山があります。","Near Uzumasa, there are places like Koryu-ji Temple and Arashiyama.","\"there are places like ~\"(〜のような場所がある)。"],
+  ["京都の気候は厳しいです。","Kyoto's climate is quite harsh.","\"harsh\"(厳しい)は気候にも性格にも使える形容詞。"],
+  ["夏はとても蒸し暑いです。","The summers are very hot and humid.","\"hot and humid\"(蒸し暑い)は定番のセット表現。"],
+  ["冬はとても寒く、底冷えします。","The winters are very cold, with a damp, bone-chilling cold.","\"bone-chilling\"(骨まで凍るような)は強調表現。"],
+  ["正直、快適な気候とは言えません。","Honestly, it's not the most comfortable climate.","\"honestly\"(正直言うと)は本音を切り出す文頭表現。"],
+  ["最近、京都には観光客がとても多いです。","These days, Kyoto gets a huge number of tourists.","\"these days\"(最近は)、\"a huge number of ~\"(非常に多くの〜)。"],
+  ["そのため、地元の人たちは大変な思いをしているようです。","Because of that, local residents seem to be having a hard time.","\"have a hard time\"(大変な思いをする)。\"seem to be -ing\"(〜しているようだ)。"],
+  ["実家は今も太秦にあります。","My parents still live in Uzumasa.","シンプルな現在形。"],
+  ["私は年に2〜3回、実家に帰ります。","I go back to visit two or three times a year.","\"times a year\"(年に〜回)。"]
+ ]},
+ 4:{title:"家族構成", group:"自分について", sentences:[
+  ["私は4人家族で育ちました。","I grew up in a family of four.","\"a family of + 数字\"(〜人家族)。"],
+  ["家族は両親と姉、そして私です。","My family is my parents, my older sister, and me.","家族構成を列挙する時の型。"],
+  ["姉はすでに結婚しています。","My sister is already married.","\"already\"(すでに)は完了のニュアンス。"],
+  ["姉は実家の近くに住んでいます。","She lives near our parents' house.","所有格の複数形 \"parents'\"(両親の)。"],
+  ["姉には子どもが2人います。","She has two children.","\"have + 数字 + children\"。"],
+  ["私の甥です。","They're my nephews.","\"nephew\"(甥)。女の子なら \"niece\"(姪)。"],
+  ["私は今年結婚しました。","I got married this year.","\"get married\"(結婚する)は変化を表す動詞。"],
+  ["今は妻と2人で暮らしています。","Now I live with my wife, just the two of us.","\"just the two of us\"(私たち2人だけ)は付け足しの強調表現。"],
+  ["妻は長野県の大町市出身です。","My wife is from Omachi City in Nagano Prefecture.","出身地の言い方は自分の時と同じ型。"],
+  ["妻はWEB制作会社でデザイナーをしています。","She works as a designer at a web design company.","\"work as ~\"(〜として働く)。"]
+ ]},
+ 5:{title:"性格・強み弱み", group:"自分について", sentences:[
+  ["私は話すこと自体は得意です。","I'm actually pretty good at talking.","\"be good at -ing\"(〜が得意)。\"pretty\"(かなり)は口語的な強調。"],
+  ["しかし、自分から話しかけることは少ないです。","But I rarely start a conversation on my own.","\"rarely\"(めったに〜ない)は一般動詞の前に置く頻度副詞。\"on my own\"(自分から)。"],
+  ["必要がなければ、あまり自分から動きません。","If there's no real need to, I don't tend to take the first step.","\"tend to ~\"(〜しがち)。\"take the first step\"(最初の一歩を踏み出す)。"],
+  ["だから、私は受け身なタイプだと思います。","So I think of myself as more of a passive type.","\"think of A as B\"(AをBだと思う)。\"more of a ~\"(どちらかというと〜)。"],
+  ["私の強みは論理的思考力です。","My strength is logical thinking.","\"strength\"(強み)⇔\"weakness\"(弱み)は対で覚える。"],
+  ["物事を筋道立てて考えるのが得意です。","I'm good at reasoning things through in a clear, step-by-step way.","\"reason things through\"(筋道立てて考え抜く)。\"step-by-step\"(一歩ずつ)。"],
+  ["計画性については、時と場合によります。","As for planning ahead, it really depends on the situation.","\"as for ~\"(〜について言えば)は話題転換の定番表現。"],
+  ["だから、それは一貫した強みとは言えないかもしれません。","So I wouldn't call that a consistent strength of mine.","\"wouldn't call A B\" は控えめな否定の言い方。"],
+  ["私の弱みは、議論の時に出ます。","My weakness shows up during discussions.","\"show up\"(現れる)。"],
+  ["議論になると、私は意図した以上に相手を言い負かしてしまうことがあります。","When I get into an argument, I sometimes end up overpowering the other person more than I intended.","\"get into an argument\"(議論になる)。\"end up -ing\"(結局〜することになる)。"]
+ ]},
+ 6:{title:"趣味① コーヒー", group:"趣味・好み", sentences:[
+  ["私の趣味の1つはコーヒーです。","One of my hobbies is coffee.","\"one of my hobbies\"(趣味の1つ)。"],
+  ["もともと、妻がハンドドリップでコーヒーを淹れていました。","It started because my wife used to make hand-drip coffee.","\"used to ~\" は「以前は〜していた」という過去の習慣(今は違う可能性を含む)。"],
+  ["それがきっかけで、私もコーヒーを淹れ始めました。","That's what got me into it, too.","1番の \"That's what got me interested in ~\" と同じパターンの再利用。"],
+  ["普段飲む豆には、あまりこだわりがありません。","I'm not particularly picky about the beans I drink day to day.","\"picky about ~\"(〜にこだわる)。\"day to day\"(日々の)。"],
+  ["しかし、旅行先で色々な種類の豆を買って試すのは好きです。","But I do enjoy trying different kinds of beans when I travel.","強調の \"do\"。\"enjoy -ing\" は動名詞が必須。"],
+  ["カフェ巡りは、あまり積極的にはしていません。","I'm not really an active cafe-hopper, though.","\"cafe-hopper\" は cafe+hop(飛び回る)から作った口語的な言い方。文末の \"though\" は軽い逆接。"]
+ ]},
+ 7:{title:"趣味② ゲーム", group:"趣味・好み", sentences:[
+  ["もう1つの趣味はゲームです。","Another hobby of mine is video games.","\"a hobby of mine\" は所有格の二重表現。"],
+  ["好きなジャンルはアクション系か戦略系です。","I like action games and strategy games.","シンプルな並列。"],
+  ["私は1つのゲームを長くやり込むタイプではありません。","I'm not the type to stick with one game for a long time.","\"the type to ~\"(〜するタイプ)。\"stick with ~\"(〜を続ける)。"],
+  ["その時々で、色々な種類のゲームをプレイします。","I tend to play different games depending on my mood.","\"depending on my mood\"(気分次第で)。"],
+  ["今は主に「NBA 2K26」をプレイしています。","Right now, I'm mainly playing NBA 2K26.","現在進行形で「今ハマっていること」を表す。"],
+  ["「Pokémon Sleep」も続けています。","I also keep playing Pokémon Sleep.","\"keep -ing\" の再利用。"],
+  ["これは睡眠記録のついでにできるので、習慣になっています。","It tracks my sleep, so it's become part of my routine.","\"track\"(記録する)。\"become part of ~\"(〜の一部になる)。"]
+ ]},
+ 8:{title:"好きな食べ物", group:"趣味・好み", sentences:[
+  ["私の好きな食べ物はラーメンです。","My favorite food is ramen.","定番の \"My favorite X is Y\"。"],
+  ["特定の種類へのこだわりはありません。","I'm not picky about any particular style.","6番と同じ \"picky about\" の再利用。"],
+  ["色々な種類のラーメンが好きです。","I like all kinds of ramen.","\"all kinds of ~\"(あらゆる種類の)。"],
+  ["ジャンルとしては、和食が好きです。","As for food genres, I like Japanese food in general.","\"in general\"(一般的に)。"],
+  ["私はよく自分で料理を作ります。","I cook for myself quite often.","\"cook for myself\"(自炊する)。"],
+  ["得意なのは中華料理です。","I'm best at Chinese-style dishes.","\"-style\"(〜風の)は料理・ジャンルを説明する便利な接尾辞。"],
+  ["例えば、青椒肉絲や麻婆茄子を作ります。","For example, I make things like green pepper and pork stir-fry, and mapo eggplant.","\"things like ~\"(〜のようなもの)は具体例を挙げる型。"]
+ ]},
+ 9:{title:"映画・ドラマ・漫画", group:"趣味・好み", sentences:[
+  ["私は映画やドラマだけでなく、漫画も好きです。","I like manga as much as movies and dramas.","\"as much as ~\"(〜と同じくらい)。"],
+  ["最近、「ハンターハンター」を読みました。","Recently, I read Hunter x Hunter.","作品名はそのまま大文字で表記(引用符不要)。"],
+  ["他に好きな作品は、「ブルージャイアント」と「金色のガッシュ!!」です。","Other favorites of mine are Blue Giant and Zatch Bell!.","\"favorites\" は名詞化した「お気に入り」。"],
+  ["「金色のガッシュ!!」には特別な思い入れがあります。","Zatch Bell! has a special place in my heart.","\"have a special place in one's heart\"(特別な思い入れがある)は決まり文句。"],
+  ["これは、私が人生で初めて自分のお金で買った漫画だからです。","It was the first manga I ever bought with my own money.","\"the first ~ I ever ...\"(今まで〜した中で最初の)。\"with my own money\"(自分のお金で)。"]
+ ]},
+ 10:{title:"好きな音楽", group:"趣味・好み", sentences:[
+  ["私は昔からマイケル・ジャクソンの音楽をよく聴いています。","I've been a fan of Michael Jackson's music for a long time.","現在完了 \"have been\" で「ずっと〜である」という継続を表す。"],
+  ["特に好きな曲は「Rock with You」と「Man in the Mirror」です。","My favorite songs are 'Rock with You' and 'Man in the Mirror.'","曲名は引用符で囲む。"],
+  ["日本のアーティストでは、サカナクションもよく聴きます。","Among Japanese artists, I often listen to Sakanaction.","\"among ~\"(〜の中で)。"]
+ ]},
+ 11:{title:"スポーツ・運動", group:"趣味・好み", sentences:[
+  ["私はスポーツを自分でやるより、観る方が好きです。","I prefer watching sports rather than playing them.","\"prefer A rather than B\"(BよりAを好む)。動名詞の形をそろえる。"],
+  ["試合の全部ではなく、ハイライトを見ることが多いです。","I usually just watch the highlights instead of the whole game.","\"instead of ~\"(〜の代わりに)。"],
+  ["日本のプロ野球では、阪神タイガースのファンです。","In Japanese pro baseball, I'm a Hanshin Tigers fan.","\"a ~ fan\"(〜のファン)。"],
+  ["NBAは、YouTubeのハイライト動画をよく見ています。","For the NBA, I often watch highlight videos on YouTube.","\"For ~,\" は話題を提示する文頭表現。"],
+  ["定期的に続けている運動習慣は特にありません。","I don't have any regular exercise habit.","\"not ~ any\" で強調否定。"],
+  ["ただし、フットサルは年に4回くらいします。","That said, I play futsal about four times a year.","\"that said\"(とは言え)は逆接の接続表現。"]
+ ]},
+ 12:{title:"週末の過ごし方", group:"日常・生活", sentences:[
+  ["週末の過ごし方は主に3つあります。","I spend my weekends in three main ways.","\"spend time in ~ ways\"(〜な方法で時間を過ごす)。"],
+  ["1つ目は、簿記や英語の勉強です。","First, I study bookkeeping and English.","\"First, Second, Third\" の列挙表現。"],
+  ["2つ目は、ゲームです。","Second, I play video games.","前の文とセットで使う列挙表現。"],
+  ["3つ目は、妻と外食に行くことです。","Third, I go out to eat with my wife.","\"go out to eat\"(外食に行く)。"],
+  ["外食する時、特定のジャンルにはこだわりません。","When we eat out, we don't stick to any particular type of food.","\"stick to ~\"(〜にこだわる)。"],
+  ["その時に行きたいと思ったお店に、妻と一緒に行きます。","We go to whatever restaurant we feel like at the time.","\"whatever ~ we feel like\" は関係詞whateverの応用表現。"],
+  ["時々、時間のかかる料理を作ることもあります。","Sometimes I cook dishes that take a long time to make.","\"dishes that take a long time to make\" は関係代名詞thatの後置修飾。"],
+  ["家事は妻と分担しています。","My wife and I split the housework.","\"split ~\"(〜を分担する)。"],
+  ["水回りの掃除とゴミの仕分けは、妻がやってくれています。","She takes care of cleaning the bathroom and kitchen, and sorting the trash.","\"take care of -ing\"(〜を担当する)。"]
+ ]},
+ 13:{title:"行きたい場所", group:"日常・生活", sentences:[
+  ["行ってみたい場所が3つあります。","There are three places I'd like to visit.","\"places (that) I'd like to visit\" は関係代名詞の省略。"],
+  ["日光、富士の樹海、そして東北地方です。","They are Nikko, the Aokigahara forest at the foot of Mt. Fuji, and the Tohoku region.","\"at the foot of ~\"(〜の麓に)。"],
+  ["理由はシンプルです。","The reason is simple.","理由を導入する定番フレーズ。"],
+  ["まだ、どこも行ったことがないからです。","I haven't been to any of them yet.","現在完了の経験用法。\"any of them\"(それらのどれも)。"],
+  ["特に富士の樹海には興味があります。","I'm especially interested in Aokigahara.","\"be interested in ~\"(〜に興味がある)。"],
+  ["私は友人と一緒に、秘境と呼ばれる場所を訪れる活動をしています。","I go with friends to visit places that are considered hidden or remote.","\"be considered ~\"(〜と見なされている)。"],
+  ["その流れで、富士の樹海にも行ってみたいと思っています。","So I'd like to visit Aokigahara as part of that.","\"as part of that\"(その一環として)。"]
+ ]},
+ 14:{title:"旅行の思い出", group:"日常・生活", sentences:[
+  ["今年の6月に、新婚旅行でバリ島のヌサドゥアに行きました。","This past June, my wife and I went to Nusa Dua in Bali for our honeymoon.","\"this past June\"(この前の6月)。\"for our honeymoon\"(新婚旅行として)。"],
+  ["気候がとても良かったです。","The weather was fantastic.","シンプルな形容詞での感想表現。"],
+  ["泊まったホテルも最高でした。","The hotel we stayed at was amazing, too.","\"the hotel (that) we stayed at\" は関係代名詞の省略+前置詞atが文末に残る形。"],
+  ["国内旅行の思い出もあります。","I also have good memories from trips within Japan.","\"memories from ~\"(〜からの思い出)。"],
+  ["西表島では、カヤックをしたり、滝の上までトレッキングをしたりしました。","On Iriomote Island, I went kayaking and trekked to the top of a waterfall.","\"go -ing\"(〜しに行く)。"],
+  ["これは良い思い出です。","That's one of my favorite memories.","\"one of my favorite ~\"(お気に入りの〜の1つ)。"],
+  ["知床では、オシンコシンの滝など、自然の雄大さに感動しました。","In Shiretoko, I was amazed by the natural beauty, including Oshinkoshin Falls.","\"be amazed by ~\"(〜に感動する)。\"including ~\"(〜を含めて)。"]
+ ]},
+ 16:{title:"日本の良いところ", group:"日本について", sentences:[
+  ["日本の一番の魅力は、食べ物だと思います。","I think the best thing about Japan is its food.","\"the best thing about ~\"(〜の一番良いところ)。"],
+  ["和食だけでなく、食べ物全体のクオリティがとても高いです。","It's not just Japanese cuisine — the overall quality of food here is extremely high.","\"not just A — B\"(Aだけでなく、Bも)。ダッシュを使った強調構文。"],
+  ["日本より美味しい国は、あまりないと感じます。","I don't think many countries have better food than Japan.","比較級 \"better ~ than Japan\"。否定は主節側に置くのが英語らしい語順(否定転移)。"]
+ ]},
+ 17:{title:"日本の課題", group:"日本について", sentences:[
+  ["日本の課題は2つあると感じています。","I feel there are two major challenges facing Japan.","\"challenges facing Japan\"(日本が直面している課題)は現在分詞の後置修飾。"],
+  ["1つはインバウンド対応、もう1つは少子高齢化です。","One is how the country handles inbound tourism, and the other is the aging, shrinking population.","\"how 主語+動詞\" が名詞節として使われている。"],
+  ["インバウンド対応については、オーバーツーリズムが問題です。","As for inbound tourism, overtourism is a real problem.","5番と同じ \"as for\" の再利用。"],
+  ["また、観光客と地元住民の間で、マナーの違いも問題になっています。","There's also friction between tourists and local residents over manners.","\"friction between A and B over C\"(AとBの間のCに関する摩擦)。"],
+  ["私の地元の京都でも、観光客が多すぎるため、地元の人たちが大変な思いをしています。","Even in my hometown of Kyoto, the huge number of tourists is making life difficult for local residents.","\"make life difficult for ~\"(〜の生活を大変にする)。"]
+ ]},
+ 18:{title:"将来のキャリア", group:"未来・価値観", sentences:[
+  ["将来のキャリアについて、まだ明確には決めていません。","I haven't decided on a clear career path yet.","\"decide on ~\"(〜に決める)。"],
+  ["しかし、なんとなく早期リタイアをしたいという気持ちがあります。","But I do have a vague desire to retire early.","強調のdo。\"a desire to ~\"(〜したいという願望)。"],
+  ["資産形成については、キャリアとは別に、しっかり取り組んでいます。","As for building assets, I'm working on that seriously, separate from my career.","\"separate from ~\"(〜とは別に)。"]
+ ]},
+ 19:{title:"今学んでいること", group:"未来・価値観", sentences:[
+  ["今、私は2つのことを勉強しています。","Right now, I'm studying two things.","現在進行形で「今取り組んでいること」を表す。"],
+  ["1つは簿記2級、もう1つは英語です。","One is Level 2 bookkeeping, and the other is English.","11番と同じ \"One is A, the other is B\" の型。"],
+  ["簿記を勉強している理由は、仕事で財務諸表を読む機会があるからです。","I'm studying bookkeeping because I sometimes need to read financial statements at work.","\"because\" の理由節。"],
+  ["英語を勉強しているきっかけは、会社が英語学習を勧めていることです。","I started studying English because my company encourages it.","\"encourage ~\"(〜を推奨する)。"],
+  ["私はTOEIC 850を目標にしています。","My goal is to score 850 on the TOEIC test.","\"score + 点数 + on ~\"(〜で何点取る)。"]
+ ]}
+};
+const GROUP_ORDER = ["自分について","趣味・好み","日常・生活","日本について","未来・価値観"];
+
+/* =================== STATE =================== */
+let mastered = {};           // { "1-0": true, ... }
+let currentCat = 1;
+let currentIndex = 0;
+let practiceMode = false;
+let practiceQueue = [];
+let showEnglish = false;
+let currentRate = 0.8;
+let storageOk = true;
+let bilingualMode = false;
+let continuousActive = false;
+let continuousToken = 0;
+
+const catIds = () => Object.keys(CATEGORIES).map(Number);
+
+function sentenceId(catId, idx){ return catId+"-"+idx; }
+
+function totalCounts(){
+  let total=0, done=0;
+  catIds().forEach(cid=>{
+    CATEGORIES[cid].sentences.forEach((_,i)=>{
+      total++;
+      if(mastered[sentenceId(cid,i)]) done++;
+    });
+  });
+  return {total, done};
+}
+function catCounts(cid){
+  const total = CATEGORIES[cid].sentences.length;
+  let done=0;
+  for(let i=0;i<total;i++){ if(mastered[sentenceId(cid,i)]) done++; }
+  return {total, done};
+}
+
+/* =================== STORAGE =================== */
+/* Works two ways:
+   - Inside a Claude.ai artifact: uses window.storage (per-user, persists in Claude.ai)
+   - Deployed standalone (Vercel / GitHub Pages / etc.): falls back to localStorage
+     since window.storage only exists inside the Claude.ai artifact sandbox. */
+const STORAGE_KEY = 'self-intro-progress-v1';
+
+async function loadProgress(){
+  try{
+    if(window.storage){
+      const res = await window.storage.get(STORAGE_KEY, false);
+      if(res && res.value) mastered = JSON.parse(res.value);
+    }else if(window.localStorage){
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(raw) mastered = JSON.parse(raw);
+    }
+  }catch(e){
+    mastered = {};
+  }
+}
+async function saveProgress(){
+  try{
+    if(window.storage){
+      await window.storage.set(STORAGE_KEY, JSON.stringify(mastered), false);
+    }else if(window.localStorage){
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(mastered));
+    }
+  }catch(e){
+    storageOk = false;
+  }
+}
+
+/* =================== SPEECH =================== */
+let voicesCache = [];
+function refreshVoices(){ voicesCache = window.speechSynthesis ? window.speechSynthesis.getVoices() : []; }
+if('speechSynthesis' in window){
+  refreshVoices();
+  window.speechSynthesis.onvoiceschanged = refreshVoices;
+}
+function sleep(ms){ return new Promise(r=>setTimeout(r, ms)); }
+
+function speakText(text, lang, rate){
+  return new Promise(resolve=>{
+    if(!('speechSynthesis' in window)){ resolve(); return; }
+    let done=false;
+    const finish=()=>{ if(!done){ done=true; resolve(); } };
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = lang;
+    utter.rate = rate;
+    const voice = voicesCache.find(v=>v.lang && v.lang.toLowerCase().startsWith(lang.slice(0,2)));
+    if(voice) utter.voice = voice;
+    utter.onend = finish;
+    utter.onerror = finish;
+    window.speechSynthesis.speak(utter);
+    setTimeout(finish, 15000); // safety net in case events never fire
+  });
+}
+function speak(text){
+  if(!('speechSynthesis' in window)){
+    alert('お使いのブラウザは音声読み上げに対応していません。');
+    return;
+  }
+  window.speechSynthesis.cancel();
+  speakText(text, 'en-US', currentRate);
+}
+
+/* =================== RENDER =================== */
+function renderSidebar(){
+  const sidebar = document.getElementById('sidebar');
+  sidebar.innerHTML = '';
+  GROUP_ORDER.forEach(group=>{
+    const label = document.createElement('div');
+    label.className = 'group-label mono';
+    label.textContent = group;
+    sidebar.appendChild(label);
+    catIds().filter(cid=>CATEGORIES[cid].group===group).forEach(cid=>{
+      const {total, done} = catCounts(cid);
+      const btn = document.createElement('button');
+      btn.className = 'cat-btn' + (cid===currentCat?' active':'') + (done===total?' done':'');
+      btn.innerHTML = CATEGORIES[cid].title + '<span class="frac mono">'+done+'/'+total+'</span>';
+      btn.addEventListener('click', ()=>{
+        stopContinuous();
+        currentCat = cid; currentIndex = 0; showEnglish=false; practiceMode=false;
+        renderAll();
+      });
+      sidebar.appendChild(btn);
+    });
+  });
+}
+
+function activeIndices(){
+  const total = CATEGORIES[currentCat].sentences.length;
+  if(!practiceMode) return [...Array(total).keys()];
+  return practiceQueue;
+}
+
+function renderTop(){
+  const {total, done} = totalCounts();
+  document.getElementById('overall-frac').textContent = done+' / '+total;
+  const pct = total? (done/total*100):0;
+  document.getElementById('overall-bar-fill').style.width = pct+'%';
+}
+
+function renderCard(){
+  const idxList = activeIndices();
+  const cat = CATEGORIES[currentCat];
+  document.getElementById('cat-title').innerHTML = '<span class="n mono">CHAPTER</span>'+cat.title;
+
+  const ptBtn = document.getElementById('practice-toggle');
+  ptBtn.classList.toggle('active', practiceMode);
+  ptBtn.textContent = practiceMode ? '苦手のみ練習中' : '苦手のみ練習';
+
+  const cardWrap = document.getElementById('card-wrap');
+  const controls = document.getElementById('controls');
+  const navRow = document.getElementById('nav-row');
+
+  if(idxList.length===0){
+    cardWrap.style.display='none';
+    controls.style.display='none';
+    navRow.style.display='none';
+    let empty = document.getElementById('empty-state');
+    if(!empty){
+      empty = document.createElement('div');
+      empty.id='empty-state';
+      document.getElementById('main').insertBefore(empty, controls);
+    }
+    empty.style.display='block';
+    empty.innerHTML = '<span class="big display">🎉 このチャプターは全部習得済みです</span>苦手のみ練習をオフにすると全文を見直せます。';
+    return;
+  }
+  cardWrap.style.display='block';
+  controls.style.display='flex';
+  navRow.style.display='flex';
+  const empty = document.getElementById('empty-state');
+  if(empty) empty.style.display='none';
+
+  if(currentIndex >= idxList.length) currentIndex = 0;
+  const sentIdx = idxList[currentIndex];
+  const [jp, en, note] = cat.sentences[sentIdx];
+  const sid = sentenceId(currentCat, sentIdx);
+  const isMastered = !!mastered[sid];
+
+  document.getElementById('card-counter').textContent = 'CARD '+(currentIndex+1)+' / '+idxList.length;
+  document.getElementById('jp-text').textContent = jp;
+
+  const enText = document.getElementById('en-text');
+  const enPlaceholder = document.getElementById('en-placeholder');
+  enText.textContent = en;
+  enText.classList.toggle('show', showEnglish);
+  enPlaceholder.style.display = showEnglish ? 'none':'block';
+
+  document.getElementById('note-text').textContent = note;
+  document.getElementById('note-wrap').classList.toggle('show', showEnglish);
+
+  document.getElementById('btn-show').textContent = showEnglish ? '英語と解説を隠す' : '英語と解説を見る';
+
+  const stamp = document.getElementById('stamp');
+  stamp.classList.toggle('visible', isMastered);
+
+  const masterBtn = document.getElementById('btn-master');
+  masterBtn.textContent = isMastered ? '習得済み ✓（解除する）' : '習得済みにする ✓';
+  masterBtn.classList.toggle('off', !isMastered);
+
+  document.getElementById('btn-prev').disabled = currentIndex===0 || continuousActive;
+  document.getElementById('btn-next').disabled = continuousActive;
+  document.getElementById('btn-next').textContent = (currentIndex===idxList.length-1) ? '最初に戻る ▶' : '次へ ▶';
+  document.getElementById('btn-show').disabled = continuousActive;
+
+  const contBtn = document.getElementById('btn-continuous');
+  contBtn.textContent = continuousActive ? '■ 停止' : '▶ 連続再生';
+  contBtn.classList.toggle('playing', continuousActive);
+}
+
+function renderAll(){
+  renderSidebar();
+  renderTop();
+  renderCard();
+}
+
+/* =================== PRACTICE MODE =================== */
+function buildPracticeQueue(){
+  const cat = CATEGORIES[currentCat];
+  const unmastered = [];
+  cat.sentences.forEach((_,i)=>{ if(!mastered[sentenceId(currentCat,i)]) unmastered.push(i); });
+  for(let i=unmastered.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [unmastered[i],unmastered[j]] = [unmastered[j],unmastered[i]];
+  }
+  return unmastered;
+}
+
+/* =================== CONTINUOUS PLAYBACK =================== */
+function stopContinuous(){
+  if(!continuousActive) return;
+  continuousActive = false;
+  continuousToken++;
+  if('speechSynthesis' in window) window.speechSynthesis.cancel();
+  renderCard();
+}
+
+async function runContinuous(){
+  continuousActive = true;
+  const myToken = ++continuousToken;
+  renderCard();
+
+  while(continuousActive && myToken===continuousToken){
+    const idxList = activeIndices();
+    if(idxList.length===0) break;
+    if(currentIndex>=idxList.length) currentIndex = 0;
+
+    showEnglish = true;
+    renderCard();
+
+    const cat = CATEGORIES[currentCat];
+    const sentIdx = idxList[currentIndex];
+    const [jp, en] = cat.sentences[sentIdx];
+
+    if(bilingualMode){
+      await speakText(jp, 'ja-JP', 1.0);
+      if(!continuousActive || myToken!==continuousToken) break;
+      await sleep(350);
+      if(!continuousActive || myToken!==continuousToken) break;
+    }
+    await speakText(en, 'en-US', currentRate);
+    if(!continuousActive || myToken!==continuousToken) break;
+    await sleep(900);
+    if(!continuousActive || myToken!==continuousToken) break;
+
+    currentIndex = (currentIndex+1) % idxList.length;
+  }
+  continuousActive = false;
+  renderCard();
+}
+
+/* =================== EVENTS =================== */
+document.getElementById('btn-continuous').addEventListener('click', ()=>{
+  if(continuousActive){
+    stopContinuous();
+  }else{
+    runContinuous();
+  }
+});
+
+document.getElementById('btn-bilingual').addEventListener('click', ()=>{
+  bilingualMode = !bilingualMode;
+  const btn = document.getElementById('btn-bilingual');
+  btn.textContent = '日本語も読む: ' + (bilingualMode ? 'ON' : 'OFF');
+  btn.classList.toggle('off', !bilingualMode);
+});
+
+document.getElementById('btn-show').addEventListener('click', ()=>{
+  if(continuousActive) return;
+  showEnglish = !showEnglish;
+  renderCard();
+});
+
+document.getElementById('btn-master').addEventListener('click', ()=>{
+  const idxList = activeIndices();
+  const sentIdx = idxList[currentIndex];
+  const sid = sentenceId(currentCat, sentIdx);
+  mastered[sid] = !mastered[sid];
+  saveProgress();
+  if(practiceMode){ practiceQueue = buildPracticeQueue(); if(currentIndex>=practiceQueue.length) currentIndex=Math.max(0,practiceQueue.length-1); }
+  renderTop();
+  renderSidebar();
+  renderCard();
+});
+
+document.getElementById('btn-prev').addEventListener('click', ()=>{
+  if(currentIndex>0){ currentIndex--; showEnglish=false; renderCard(); }
+});
+document.getElementById('btn-next').addEventListener('click', ()=>{
+  const idxList = activeIndices();
+  currentIndex = (currentIndex+1) % Math.max(idxList.length,1);
+  showEnglish=false;
+  renderCard();
+});
+
+document.getElementById('practice-toggle').addEventListener('click', ()=>{
+  practiceMode = !practiceMode;
+  if(practiceMode){ practiceQueue = buildPracticeQueue(); }
+  currentIndex = 0;
+  showEnglish = false;
+  renderCard();
+});
+
+document.querySelectorAll('#rate-group .rate').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('#rate-group .rate').forEach(b=>b.classList.remove('selected'));
+    btn.classList.add('selected');
+    currentRate = parseFloat(btn.dataset.rate);
+    if(continuousActive) return; // let the running loop pick up the new rate on its next line
+    const idxList = activeIndices();
+    const sentIdx = idxList[currentIndex];
+    const en = CATEGORIES[currentCat].sentences[sentIdx][1];
+    speak(en);
+  });
+});
+
+/* play on tap of English text once revealed, plus dedicated play via rate buttons already speaks;
+   also allow tapping the play icon area (rate buttons) without changing rate is fine as-is */
+
+/* =================== INIT =================== */
+(async function init(){
+  await loadProgress();
+  renderAll();
+})();
+</script>
+
+<script>
+/* =================== PWA: service worker registration =================== */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('service-worker.js').catch(() => {
+      // Offline support is a nice-to-have -- ignore registration failures
+      // (e.g. running from file:// during local testing).
+    });
+  });
+
+  // When an updated service worker takes over, reload once so the page
+  // picks up the new code immediately instead of needing a second refresh.
+  let reloadedForUpdate = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (reloadedForUpdate) return;
+    reloadedForUpdate = true;
+    window.location.reload();
+  });
+}
+</script>
+</body>
+</html>
