@@ -45,6 +45,11 @@
   .mono{ font-family:'IBM Plex Mono', monospace; }
   .display{ font-family:'Fraunces', serif; }
 
+  /* ---- icons ---- */
+  .icon{ display:inline-block; vertical-align:-0.15em; flex-shrink:0; }
+  .icon-outline{ fill:none; stroke:currentColor; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; }
+  .icon-solid{ fill:currentColor; }
+
   /* ---- top bar ---- */
   #topbar{
     background:var(--navy);
@@ -145,11 +150,17 @@
   }
   .cat-btn.active .frac{ opacity:0.85; }
   .cat-btn.done::after{
-    content:'✓';
+    content:'';
     position:absolute;
     left:-2px; top:-6px;
-    font-size:0.6rem;
-    color:var(--gold);
+    width:12px; height:12px;
+    background-color:var(--gold);
+    -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath fill-rule='evenodd' d='M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z' clip-rule='evenodd'/%3E%3C/svg%3E");
+    mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath fill-rule='evenodd' d='M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z' clip-rule='evenodd'/%3E%3C/svg%3E");
+    -webkit-mask-size:contain;
+    mask-size:contain;
+    -webkit-mask-repeat:no-repeat;
+    mask-repeat:no-repeat;
   }
 
   /* ---- main ---- */
@@ -301,6 +312,9 @@
     text-transform:uppercase;
     color:var(--gold-2);
     margin-bottom:6px;
+    display:flex;
+    align-items:center;
+    gap:5px;
   }
   #note-text{
     font-family:'IBM Plex Sans', sans-serif;
@@ -354,6 +368,9 @@
     border-radius:8px;
     padding:9px 14px;
     cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
     transition:background .15s ease, border-color .15s ease;
   }
   button.ctl:hover{ border-color:var(--gold); }
@@ -415,7 +432,10 @@
     font-family:'Fraunces', serif;
     font-size:1.3rem;
     color:var(--ink);
-    display:block;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
     margin-bottom:8px;
   }
 
@@ -449,6 +469,35 @@
 </head>
 <body>
 
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-speaker" viewBox="0 0 24 24">
+      <path d="M19.114 5.636a9 9 0 0 1 0 12.728M16.463 8.288a5.25 5.25 0 0 1 0 7.424M6.75 8.25l4.72-4.72a.75.75 0 0 1 1.28.53v15.88a.75.75 0 0 1-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 0 1 2.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75Z"/>
+    </symbol>
+    <symbol id="i-play" viewBox="0 0 20 20">
+      <path d="M6.3 2.841A1.5 1.5 0 0 0 4 4.11V15.89a1.5 1.5 0 0 0 2.3 1.269l9.344-5.89a1.5 1.5 0 0 0 0-2.538L6.3 2.84Z"/>
+    </symbol>
+    <symbol id="i-stop" viewBox="0 0 20 20">
+      <rect x="5" y="5" width="10" height="10" rx="2"/>
+    </symbol>
+    <symbol id="i-chevron-left" viewBox="0 0 20 20">
+      <path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 0 1-.02 1.06L8.832 10l3.938 3.71a.75.75 0 1 1-1.04 1.08l-4.5-4.25a.75.75 0 0 1 0-1.08l4.5-4.25a.75.75 0 0 1 1.06.02Z" clip-rule="evenodd"/>
+    </symbol>
+    <symbol id="i-chevron-right" viewBox="0 0 20 20">
+      <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 0 1 .02-1.06L11.168 10 7.23 6.29a.75.75 0 1 1 1.04-1.08l4.5 4.25a.75.75 0 0 1 0 1.08l-4.5 4.25a.75.75 0 0 1-1.06-.02Z" clip-rule="evenodd"/>
+    </symbol>
+    <symbol id="i-check" viewBox="0 0 20 20">
+      <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clip-rule="evenodd"/>
+    </symbol>
+    <symbol id="i-lightbulb" viewBox="0 0 24 24">
+      <path d="M12 18v-5.25m0 0a6.01 6.01 0 0 0 1.5-.189m-1.5.189a6.01 6.01 0 0 1-1.5-.189m3.75 7.478a12.06 12.06 0 0 1-4.5 0m3.75 2.383a14.406 14.406 0 0 1-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 1 0-7.517 0c.85.493 1.509 1.333 1.509 2.316V18"/>
+    </symbol>
+    <symbol id="i-sparkles" viewBox="0 0 24 24">
+      <path d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z"/>
+    </symbol>
+  </defs>
+</svg>
+
 <div id="topbar">
   <div class="row">
     <h1><span class="sub">Study Passport · 英作文暗記トレーナー</span>Self-Introduction, 20 Chapters</h1>
@@ -469,32 +518,32 @@
         <div class="stamp" id="stamp">MASTERED<br>習得済</div>
         <div id="card-top-row">
           <div id="card-counter"></div>
-          <button id="btn-play-sentence" type="button" aria-label="この文を再生">🔊</button>
+          <button id="btn-play-sentence" type="button" aria-label="この文を再生"><svg class="icon icon-outline" width="15" height="15" viewBox="0 0 24 24"><use href="#i-speaker"/></svg></button>
         </div>
         <div id="jp-text" class="jp"></div>
         <div id="en-wrap">
           <div id="en-placeholder" class="mono">タップして英語と解説を表示</div>
           <div id="en-text"></div>
           <div id="note-wrap">
-            <div id="note-label">💡 解説</div>
+            <div id="note-label"><svg class="icon icon-outline" width="13" height="13" viewBox="0 0 24 24"><use href="#i-lightbulb"/></svg>解説</div>
             <div id="note-text"></div>
           </div>
         </div>
       </div>
     </div>
     <div id="controls">
-      <button class="ctl primary" id="btn-continuous">▶ 連続再生</button>
+      <button class="ctl primary" id="btn-continuous"><svg class="icon icon-solid" width="13" height="13" viewBox="0 0 20 20"><use href="#i-play"/></svg>連続再生</button>
       <button class="ctl gold off" id="btn-bilingual">日本語も読む: OFF</button>
       <div id="loop-hint">現在のリストを最初から最後までループ再生します</div>
       <div id="rate-group">
-        <button class="ctl rate selected" data-rate="0.8">🔊 ゆっくり</button>
-        <button class="ctl rate" data-rate="1.0">🔊 標準</button>
+        <button class="ctl rate selected" data-rate="0.8"><svg class="icon icon-outline" width="13" height="13" viewBox="0 0 24 24"><use href="#i-speaker"/></svg>ゆっくり</button>
+        <button class="ctl rate" data-rate="1.0"><svg class="icon icon-outline" width="13" height="13" viewBox="0 0 24 24"><use href="#i-speaker"/></svg>標準</button>
       </div>
-      <button class="ctl gold off" id="btn-master">習得済みにする ✓</button>
+      <button class="ctl gold off" id="btn-master">習得済みにする <svg class="icon icon-solid" width="13" height="13" viewBox="0 0 20 20"><use href="#i-check"/></svg></button>
     </div>
     <div id="nav-row">
-      <button class="ctl" id="btn-prev">◀ 前へ</button>
-      <button class="ctl" id="btn-next">次へ ▶</button>
+      <button class="ctl" id="btn-prev"><svg class="icon icon-solid" width="12" height="12" viewBox="0 0 20 20"><use href="#i-chevron-left"/></svg>前へ</button>
+      <button class="ctl" id="btn-next">次へ <svg class="icon icon-solid" width="12" height="12" viewBox="0 0 20 20"><use href="#i-chevron-right"/></svg></button>
     </div>
   </main>
 </div>
@@ -866,7 +915,7 @@ function renderCard(){
       document.getElementById('main').insertBefore(empty, controls);
     }
     empty.style.display='block';
-    empty.innerHTML = '<span class="big display">🎉 このチャプターは全部習得済みです</span>苦手のみ練習をオフにすると全文を見直せます。';
+    empty.innerHTML = '<span class="big display"><svg class="icon icon-outline" width="22" height="22" viewBox="0 0 24 24"><use href="#i-sparkles"/></svg>このチャプターは全部習得済みです</span>苦手のみ練習をオフにすると全文を見直せます。';
     return;
   }
   cardWrap.style.display='block';
@@ -896,17 +945,21 @@ function renderCard(){
   const stamp = document.getElementById('stamp');
   stamp.classList.toggle('visible', isMastered);
 
+  const checkIcon = '<svg class="icon icon-solid" width="13" height="13" viewBox="0 0 20 20"><use href="#i-check"/></svg>';
   const masterBtn = document.getElementById('btn-master');
-  masterBtn.textContent = isMastered ? '習得済み ✓（解除する）' : '習得済みにする ✓';
+  masterBtn.innerHTML = isMastered ? '習得済み '+checkIcon+'（解除する）' : '習得済みにする '+checkIcon;
   masterBtn.classList.toggle('off', !isMastered);
 
   document.getElementById('btn-prev').disabled = currentIndex===0 || continuousActive;
   document.getElementById('btn-next').disabled = continuousActive;
-  document.getElementById('btn-next').textContent = (currentIndex===idxList.length-1) ? '最初に戻る ▶' : '次へ ▶';
+  const chevronRightIcon = '<svg class="icon icon-solid" width="12" height="12" viewBox="0 0 20 20"><use href="#i-chevron-right"/></svg>';
+  document.getElementById('btn-next').innerHTML = (currentIndex===idxList.length-1) ? '最初に戻る '+chevronRightIcon : '次へ '+chevronRightIcon;
   document.getElementById('btn-play-sentence').disabled = continuousActive;
 
   const contBtn = document.getElementById('btn-continuous');
-  contBtn.textContent = continuousActive ? '■ 停止' : '▶ 連続再生';
+  contBtn.innerHTML = continuousActive
+    ? '<svg class="icon icon-solid" width="13" height="13" viewBox="0 0 20 20"><use href="#i-stop"/></svg>停止'
+    : '<svg class="icon icon-solid" width="13" height="13" viewBox="0 0 20 20"><use href="#i-play"/></svg>連続再生';
   contBtn.classList.toggle('playing', continuousActive);
 }
 
