@@ -219,13 +219,35 @@
     height:0;
     border-top:1px dashed var(--line);
   }
+  #card-top-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:16px;
+  }
   #card-counter{
     font-family:'IBM Plex Mono', monospace;
     font-size:0.7rem;
     color:var(--muted);
     letter-spacing:0.06em;
-    margin-bottom:16px;
   }
+  #btn-play-sentence{
+    background:var(--navy);
+    color:var(--ivory);
+    border:none;
+    border-radius:50%;
+    width:32px;
+    height:32px;
+    flex-shrink:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    font-size:13px;
+    transition:background .15s ease;
+  }
+  #btn-play-sentence:hover{ background:var(--navy-2); }
+  #btn-play-sentence:disabled{ opacity:0.35; cursor:default; }
   #jp-text{
     font-size:1.28rem;
     line-height:1.75;
@@ -236,7 +258,15 @@
     border-top:1px dashed var(--line);
     padding-top:16px;
     min-height:70px;
+    cursor:pointer;
+    margin:0 -28px -26px;
+    padding-left:28px;
+    padding-right:28px;
+    padding-bottom:26px;
+    border-radius:0 0 16px 16px;
+    transition:background .15s ease;
   }
+  #en-wrap:hover{ background:rgba(185,139,62,0.06); }
   #en-text{
     font-size:1.08rem;
     line-height:1.6;
@@ -437,10 +467,13 @@
     <div id="card-wrap">
       <div id="card">
         <div class="stamp" id="stamp">MASTERED<br>習得済</div>
-        <div id="card-counter"></div>
+        <div id="card-top-row">
+          <div id="card-counter"></div>
+          <button id="btn-play-sentence" type="button" aria-label="この文を再生">🔊</button>
+        </div>
         <div id="jp-text" class="jp"></div>
         <div id="en-wrap">
-          <div id="en-placeholder" class="mono">「英語を見る」を押すと表示されます</div>
+          <div id="en-placeholder" class="mono">タップして英語と解説を表示</div>
           <div id="en-text"></div>
           <div id="note-wrap">
             <div id="note-label">💡 解説</div>
@@ -453,7 +486,6 @@
       <button class="ctl primary" id="btn-continuous">▶ 連続再生</button>
       <button class="ctl gold off" id="btn-bilingual">日本語も読む: OFF</button>
       <div id="loop-hint">現在のリストを最初から最後までループ再生します</div>
-      <button class="ctl" id="btn-show">英語を見る</button>
       <div id="rate-group">
         <button class="ctl rate selected" data-rate="0.8">🔊 ゆっくり</button>
         <button class="ctl rate" data-rate="1.0">🔊 標準</button>
@@ -498,7 +530,17 @@ const CATEGORIES = {
   ["簡単ではありますが、以上が私の自己紹介です。","That's a quick introduction of who I am.","自己紹介を締めくくる定番のひとこと。\"quick introduction of who I am\"(簡単な自己紹介)。"],
   ["本日はよろしくお願いいたします。","I'm glad to be working with you today.","日本語特有の挨拶で直訳はできないが、気持ちを伝える自然な英語表現として使える。"],
   ["何か質問があれば、お気軽にどうぞ。","Feel free to ask me anything if you're curious.","\"feel free to ~\"(遠慮なく〜してください)は質問を促す時の定番表現。"],
-  ["お聞きいただき、ありがとうございました。","Thank you so much for listening.","自己紹介やプレゼンの締めくくりに使う定番の一文。"]
+  ["お聞きいただき、ありがとうございました。","Thank you so much for listening.","自己紹介やプレゼンの締めくくりに使う定番の一文。"],
+  ["具体的には、中期経営計画の策定や新規事業の企画を担当しています。","More specifically, I'm in charge of drafting our mid-term business plan and planning new business initiatives.","\"more specifically\"(具体的に言うと)は自己紹介の内容を掘り下げて聞かれた時の定番の切り出し。"],
+  ["保険業界に惹かれたのは、人の人生に長く関わる仕事だからです。","What drew me to the insurance industry is that it's a business that stays involved in people's lives for a long time.","\"What drew me to ~ is that …\"(〜に惹かれたのは…だからだ)は理由を深掘りする時に便利な構文。"],
+  ["妻とは共通の友人を通じて知り合いました。","My wife and I met through a mutual friend.","\"through a mutual friend\"(共通の友人を通じて)は馴れ初めを聞かれた時の定番表現。"],
+  ["早期リタイアをしたいのは、自分の時間を大切にしたいからです。","The reason I want to retire early is that I want to make more time for myself.","\"The reason ~ is that …\" は理由を説明する時の定番構文。"],
+  ["コーヒーは特に浅煎りの豆が好きです。","When it comes to coffee, I especially like light-roast beans.","\"when it comes to ~\"(〜について言うと)は話題を絞り込んで詳しく話す時の定番表現。"],
+  ["ゲームは、ストーリー重視のものより、対戦系が好きです。","As for video games, I prefer competitive ones over story-driven ones.","\"prefer A over B\"(BよりAを好む)は好みを比較して説明する時のパターン。"],
+  ["簿記を学び始めたのは去年からです。","I started studying bookkeeping just last year.","いつ始めたかを付け加えるだけで、話に具体性が出る一言。"],
+  ["将来的には、今の会社でもっと大きな役割を任されたいと思っています。","Looking ahead, I'd like to take on a bigger role at my current company.","\"looking ahead\"(将来的には)、\"take on a bigger role\"(より大きな役割を担う)。"],
+  ["とはいえ、転職も選択肢の一つとして考えています。","That said, changing jobs is also one option I'm considering.","\"that said\"(とはいえ)は前の発言に軽く逆接を加える時の定番のつなぎ言葉。"],
+  ["資産形成については、主に投資信託を使っています。","For building assets, I mainly use investment funds.","\"for ~\"(〜については)は話題を導入する軽いフレーズ。突っ込んで聞かれた時の具体的な回答に。"]
  ]},
  2:{title:"仕事の1日の流れ", group:"自分について", sentences:[
   ["私は毎朝6時半から7時の間に起きます。","I wake up every morning between 6:30 and 7:00.","\"between A and B\" で時間の範囲を表す。"],
@@ -519,20 +561,20 @@ const CATEGORIES = {
   ["それから、タスクに沿って仕事を進めます。","After that, I work through my tasks one by one.","\"work through ~\"(順番に取り組む)、\"one by one\"(1つずつ)。"],
   ["お昼休みの過ごし方は日によって違います。","How I spend my lunch break depends on the day.","\"depend on ~\"(〜次第)。\"How I spend ~\" は間接疑問文が主語になった形。"],
   ["家にいる日は、昼寝をすることが多いです。","On days when I'm at home, I often take a nap.","\"days when ~\" は関係副詞。\"take a nap\"(昼寝する)。"],
-  ["オフィスにいる日は、スマホを見て過ごします。","On days when I'm in the office, I spend the time on my phone.","\"spend time on ~\"(〜に時間を使う)。"],
+  ["オフィスにいる日は、スマホを見て過ごします。","On days when I'm in the office, I spend time on my phone.","\"spend time on ~\"(〜に時間を使う)。"],
   ["仕事が終わる時間は18時から20時の間で、日によって変わります。","My workday usually ends between 6:00 and 8:00 p.m., depending on the day.","\"depending on ~\"(〜次第で)は分詞構文的表現。"],
   ["仕事が終わったら、家に帰って晩ご飯を作ります。","After work, I go home and cook dinner.","\"after work\"(仕事の後)。"]
  ]},
  3:{title:"出身地・地元", group:"自分について", sentences:[
   ["私の出身は京都です。","I'm originally from Kyoto.","\"originally from ~\"(出身は〜)。"],
   ["生まれ育ったのは太秦というエリアです。","I grew up in an area called Uzumasa.","\"an area called ~\"(〜と呼ばれるエリア)は過去分詞の後置修飾。"],
-  ["大学も立命館大学だったので、京都でずっと過ごしていました。","I also went to university in Kyoto, at Ritsumeikan University, so I spent my whole life there.","\"so\"(だから)の因果関係。\"my whole life\"(人生のほとんど)。"],
+  ["大学も立命館大学だったので、京都でずっと過ごしていました。","I also went to university in Kyoto, at Ritsumeikan University, so I spent most of my life there.","\"so\"(だから)の因果関係。今は東京在住なので \"whole life\"(人生の全て)ではなく \"most of my life\"(人生の大半)が正確で自然。"],
   ["京都は観光地のイメージが強いです。","Kyoto is known mainly as a tourist destination.","\"be known as ~\"(〜として知られている)。"],
   ["しかし、京都は実はラーメンが美味しい街でもあります。","But Kyoto actually has great ramen, too.","\"actually\"(実は)は意外性を表す副詞。"],
   ["太秦の近くには広隆寺や嵐山があります。","Near Uzumasa, there are places like Koryu-ji Temple and Arashiyama.","\"there are places like ~\"(〜のような場所がある)。"],
   ["京都の気候は厳しいです。","Kyoto's climate is quite harsh.","\"harsh\"(厳しい)は気候にも性格にも使える形容詞。"],
   ["夏はとても蒸し暑いです。","The summers are very hot and humid.","\"hot and humid\"(蒸し暑い)は定番のセット表現。"],
-  ["冬はとても寒く、底冷えします。","The winters are very cold, with a damp, bone-chilling cold.","\"bone-chilling\"(骨まで凍るような)は強調表現。"],
+  ["冬はとても寒く、底冷えします。","The winters are very cold, and the dampness makes it feel bone-chilling.","\"bone-chilling\"(骨まで凍るような)は強調表現。\"cold\"の重複を避け、\"the dampness makes it feel ~\" で自然に。"],
   ["正直、快適な気候とは言えません。","Honestly, it's not the most comfortable climate.","\"honestly\"(正直言うと)は本音を切り出す文頭表現。"],
   ["最近、京都には観光客がとても多いです。","These days, Kyoto gets a huge number of tourists.","\"these days\"(最近は)、\"a huge number of ~\"(非常に多くの〜)。"],
   ["そのため、地元の人たちは大変な思いをしているようです。","Because of that, local residents seem to be having a hard time.","\"have a hard time\"(大変な思いをする)。\"seem to be -ing\"(〜しているようだ)。"],
@@ -587,12 +629,12 @@ const CATEGORIES = {
   ["ジャンルとしては、和食が好きです。","As for food genres, I like Japanese food in general.","\"in general\"(一般的に)。"],
   ["私はよく自分で料理を作ります。","I cook for myself quite often.","\"cook for myself\"(自炊する)。"],
   ["得意なのは中華料理です。","I'm best at Chinese-style dishes.","\"-style\"(〜風の)は料理・ジャンルを説明する便利な接尾辞。"],
-  ["例えば、青椒肉絲や麻婆茄子を作ります。","For example, I make things like green pepper and pork stir-fry, and mapo eggplant.","\"things like ~\"(〜のようなもの)は具体例を挙げる型。"]
+  ["例えば、青椒肉絲や麻婆茄子を作ります。","For example, I make dishes like stir-fried green peppers and pork, and mapo eggplant.","\"dishes like ~\"(〜のような料理)は具体例を挙げる型。\"stir-fried green peppers and pork\" とすると一皿の料理名として自然に伝わる。"]
  ]},
  9:{title:"映画・ドラマ・漫画", group:"趣味・好み", sentences:[
   ["私は映画やドラマだけでなく、漫画も好きです。","I like manga as much as movies and dramas.","\"as much as ~\"(〜と同じくらい)。"],
   ["最近、「ハンターハンター」を読みました。","Recently, I read Hunter x Hunter.","作品名はそのまま大文字で表記(引用符不要)。"],
-  ["他に好きな作品は、「ブルージャイアント」と「金色のガッシュ!!」です。","Other favorites of mine are Blue Giant and Zatch Bell!.","\"favorites\" は名詞化した「お気に入り」。"],
+  ["他に好きな作品は、「ブルージャイアント」と「金色のガッシュ!!」です。","Other favorites of mine are Blue Giant and Zatch Bell!","\"favorites\" は名詞化した「お気に入り」。作品名の\"!\"を文末の句点として使い、\".\"を重ねないのが自然な書き方。"],
   ["「金色のガッシュ!!」には特別な思い入れがあります。","Zatch Bell! has a special place in my heart.","\"have a special place in one's heart\"(特別な思い入れがある)は決まり文句。"],
   ["これは、私が人生で初めて自分のお金で買った漫画だからです。","It was the first manga I ever bought with my own money.","\"the first ~ I ever ...\"(今まで〜した中で最初の)。\"with my own money\"(自分のお金で)。"]
  ]},
@@ -606,7 +648,7 @@ const CATEGORIES = {
   ["試合の全部ではなく、ハイライトを見ることが多いです。","I usually just watch the highlights instead of the whole game.","\"instead of ~\"(〜の代わりに)。"],
   ["日本のプロ野球では、阪神タイガースのファンです。","In Japanese pro baseball, I'm a Hanshin Tigers fan.","\"a ~ fan\"(〜のファン)。"],
   ["NBAは、YouTubeのハイライト動画をよく見ています。","For the NBA, I often watch highlight videos on YouTube.","\"For ~,\" は話題を提示する文頭表現。"],
-  ["定期的に続けている運動習慣は特にありません。","I don't have any regular exercise habit.","\"not ~ any\" で強調否定。"],
+  ["定期的に続けている運動習慣は特にありません。","I don't have any regular exercise habits.","\"not ~ any\" で強調否定。\"habits\"は複数形にするのが自然。"],
   ["ただし、フットサルは年に4回くらいします。","That said, I play futsal about four times a year.","\"that said\"(とは言え)は逆接の接続表現。"]
  ]},
  12:{title:"週末の過ごし方", group:"日常・生活", sentences:[
@@ -853,8 +895,6 @@ function renderCard(){
   document.getElementById('note-text').textContent = note;
   document.getElementById('note-wrap').classList.toggle('show', showEnglish);
 
-  document.getElementById('btn-show').textContent = showEnglish ? '英語と解説を隠す' : '英語と解説を見る';
-
   const stamp = document.getElementById('stamp');
   stamp.classList.toggle('visible', isMastered);
 
@@ -865,7 +905,7 @@ function renderCard(){
   document.getElementById('btn-prev').disabled = currentIndex===0 || continuousActive;
   document.getElementById('btn-next').disabled = continuousActive;
   document.getElementById('btn-next').textContent = (currentIndex===idxList.length-1) ? '最初に戻る ▶' : '次へ ▶';
-  document.getElementById('btn-show').disabled = continuousActive;
+  document.getElementById('btn-play-sentence').disabled = continuousActive;
 
   const contBtn = document.getElementById('btn-continuous');
   contBtn.textContent = continuousActive ? '■ 停止' : '▶ 連続再生';
@@ -949,10 +989,19 @@ document.getElementById('btn-bilingual').addEventListener('click', ()=>{
   btn.classList.toggle('off', !bilingualMode);
 });
 
-document.getElementById('btn-show').addEventListener('click', ()=>{
+document.getElementById('en-wrap').addEventListener('click', ()=>{
   if(continuousActive) return;
   showEnglish = !showEnglish;
   renderCard();
+});
+
+document.getElementById('btn-play-sentence').addEventListener('click', (e)=>{
+  e.stopPropagation();
+  if(continuousActive) return;
+  const idxList = activeIndices();
+  const sentIdx = idxList[currentIndex];
+  const en = CATEGORIES[currentCat].sentences[sentIdx][1];
+  speak(en);
 });
 
 document.getElementById('btn-master').addEventListener('click', ()=>{
